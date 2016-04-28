@@ -188,7 +188,7 @@ void
 wlc_view_get_bounds(struct wlc_view *view, struct wlc_geometry *out_bounds, struct wlc_geometry *out_visible)
 {
    assert(view && out_bounds && out_bounds != out_visible);
-   memcpy(out_bounds, &view->commit.geometry, sizeof(struct wlc_geometry));
+   memcpy(out_bounds, &view->pending.geometry, sizeof(struct wlc_geometry));
 
    struct wlc_surface *surface;
    if (!(surface = convert_from_wlc_resource(view->surface, "surface")))
@@ -196,17 +196,17 @@ wlc_view_get_bounds(struct wlc_view *view, struct wlc_geometry *out_bounds, stru
 
    if (should_be_transformed_by_parent(view)) {
       for (struct wlc_view *parent = convert_from_wlc_handle(view->parent, "view"); parent; parent = convert_from_wlc_handle(parent->parent, "view")) {
-         out_bounds->origin.x += parent->commit.geometry.origin.x;
-         out_bounds->origin.y += parent->commit.geometry.origin.y;
+         out_bounds->origin.x += parent->pending.geometry.origin.x;
+         out_bounds->origin.y += parent->pending.geometry.origin.y;
       }
    }
 
-   if (view->xdg_surface && view->surface_commit.visible.size.w > 0 && view->surface_commit.visible.size.h > 0) {
+   if (view->xdg_surface && view->surface_pending.visible.size.w > 0 && view->surface_pending.visible.size.h > 0) {
       // xdg-surface client that draws drop shadows or other stuff.
-      out_bounds->origin.x -= view->surface_commit.visible.origin.x;
-      out_bounds->origin.y -= view->surface_commit.visible.origin.y;
-      out_bounds->size.w += surface->size.w - view->surface_commit.visible.size.w;
-      out_bounds->size.h += surface->size.h - view->surface_commit.visible.size.h;
+      out_bounds->origin.x -= view->surface_pending.visible.origin.x;
+      out_bounds->origin.y -= view->surface_pending.visible.origin.y;
+      out_bounds->size.w += surface->size.w - view->surface_pending.visible.size.w;
+      out_bounds->size.h += surface->size.h - view->surface_pending.visible.size.h;
    }
 
    // Make sure bounds is never 0x0 w/h
